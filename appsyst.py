@@ -2,6 +2,7 @@
 
 from bottle import Bottle, run, error, template, static_file, request, redirect
 from google.appengine.ext import ndb
+from google.appengine.api import users
 
 app = Bottle()
 g_name = 'SkyWind'
@@ -18,26 +19,46 @@ class Applic(ndb.Model):
 @app.route('/index')
 @app.route('/index.html')
 def index():
-    return template('index', name=g_name)
+    user = users.get_current_user()
+    if user:
+        return template('index', name=g_name, user = user.nickname(), lo = users.create_logout_url('/'), opt = 'Выход')
+    else:
+        return template('index', name=g_name, lo = users.create_login_url('/'), opt = 'Войти')
+        
+
+    
 
 @app.route('/add')
 def addapp():
-    return template('add', name=g_name)
+    user = users.get_current_user()
+    if user:
+        return template('add', name=g_name, lo = users.create_logout_url('/'), opt = 'Выход')
+    else:
+        redirect('/')
+    
 	
 @app.route('/add', method='POST')
 def save():
-    new_app = Applic(parent=base_key)
-    new_app.content = request.forms.get('content')
-    new_app.title = request.forms.get('title')   
-    new_app.put()
-    redirect('/')
+    user = users.get_current_user()
+    if user:
+        new_app = Applic(parent=base_key)
+        new_app.content = request.forms.get('content')
+        new_app.title = request.forms.get('title')   
+        new_app.put()
+        redirect('/')
+    else:
+        redirect('/')
 
 @app.route('/applist')
 def app_list():
-    appls_query = Applic.query(ancestor = base_key).order(-Applic.date)
-    appls = appls_query.fetch()
-    output = template('applist', appls=appls, name=g_name)
-    return output
+    user = users.get_current_user()
+    if user:
+        appls_query = Applic.query(ancestor = base_key).order(-Applic.date)
+        appls = appls_query.fetch()
+        output = template('applist', appls=appls, name=g_name, lo = users.create_logout_url('/'), opt = 'Выход')
+        return output
+    else:
+        redirect('/')
 
 @app.route('/hello/<name>')
 def greet(name='Stranger'):
