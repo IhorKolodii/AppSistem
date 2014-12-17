@@ -13,13 +13,13 @@
 				<a href="/applist">Список заявок</a>
 			</li>
 			<li>
-				<a href="news.html">Новости</a>
+				<a href="http://khanifest.com/">Новости</a>
 			</li>
 			<li>
-				<a href="about.html">О нас</a>
+				<a href="me.html">{{user}}</a>
 			</li>
 			<li>
-				<a href="{{lo}}">{{opt}}</a>
+				<a href="{{log_in_out}}">{{opt}}</a>
 			</li>
 			</ul>
 	</div>

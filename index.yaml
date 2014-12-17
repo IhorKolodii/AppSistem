@@ -11,6 +11,12 @@ indexes:
 # your application using appcfg.py.
 
 - kind: Applic
+  properties:
+  - name: user
+  - name: date
+    direction: desc
+
+- kind: Applic
   ancestor: yes
   properties:
   - name: date

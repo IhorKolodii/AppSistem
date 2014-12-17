@@ -4,12 +4,15 @@
 	
 <div id="contents">
 	% for appl in appls:
-	<div>
-    <h2>{{appl.title}}</h2>
+	<div class="posts">
+    <h2>{{appl.title}}</h2>   	
+	<h3>{{appl.username}}</h3>
     <p>{{appl.content}}</p>
     <b>{{appl.date}}</b>
+		
     </div>
     % end
 </div>
 		
 % include('footer.tpl')
+

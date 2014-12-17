@@ -1,6 +1,7 @@
+% setdefault('user', '')
 % include('header.tpl')
 % include('navbar.tpl')
-% setdefault('user', '')
+
 
 
 	<div id="adbox">
@@ -18,7 +19,7 @@
 	
 	<div id="contents">
 		<div id="tagline" class="clearfix">
-			<h1>Присоединяйтесь к нам {{user}}</h1>
+			<h1>Присоединяйтесь к нам </h1>
 			<div>
 				<p>
 					Безумный угар и сумашествие гарантированы вам все время, которые вы проведете с нами.
