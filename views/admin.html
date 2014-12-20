@@ -1,0 +1,27 @@
+% setdefault('error', '')
+% include('header.tpl')
+% include('navbar.tpl')
+<div id="contents">
+	<div class="section">
+		<h1>Добавить админа</h1>
+		<p>
+			Введите email Google
+		</p>
+		<form action="/admin" method="post" class="message">
+			<input type="text" name="mail" placeholder="email"></input>	
+            <input type="submit" value="Добавить"/>
+			{{error}}
+		</form>
+	</div>
+	
+	<h1>Список админов:</h1>
+	% for admin in admins:
+	<div class="posts">
+    <h2>{{admin.admin_nick}}</h2>   	
+	<h3>Добавлен {{admin.date.strftime("%d.%m.%y  %H:%M")}} {{admin.ref_nick}}</h3>
+    </div>
+    % end
+	
+</div>
+
+% include('footer.tpl')

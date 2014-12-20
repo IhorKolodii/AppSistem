@@ -8,7 +8,7 @@
     <h2>{{appl.title}}</h2>   	
 	<h3>{{appl.username}}</h3>
     <p>{{appl.content}}</p>
-    <b>{{appl.date}}</b>
+    <b>{{appl.date.strftime("%d.%m.%y  %H:%M")}}</b>
 		
     </div>
     % end

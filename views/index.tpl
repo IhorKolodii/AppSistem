@@ -44,5 +44,16 @@
 			</div>
 		</div>
 	</div>
-		
+
+
+	<div>
+		<ul id="navigation">
+			<li>
+				<a href="/isadmin"> Я админ?</a>
+			</li>
+        </ul>
+	</div>	
+	
+
+
 	% include('footer.tpl')

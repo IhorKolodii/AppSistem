@@ -8,6 +8,7 @@ app = Bottle()
 g_name = 'SkyWind'
 
 base_key = ndb.Key('Applic', 'KF_Apps')
+admin_base = ndb.Key('Admins', 'admin_base')
 
 class Applic(ndb.Model):
     username = ndb.StringProperty(indexed=False, required=True)
@@ -16,6 +17,23 @@ class Applic(ndb.Model):
     content = ndb.TextProperty(indexed=False, required=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
 
+class Admins(ndb.Model):
+    admin_nick = ndb.StringProperty(indexed=False, required=True)
+    admin_id = ndb.StringProperty(indexed=True, required=True)
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    ref_nick = ndb.StringProperty(indexed=False, required=True)
+    
+def is_local_admin():
+    admins_query = Admins.query(ancestor = admin_base)
+    admins = admins_query.fetch()
+    user = users.get_current_user()
+    if user: 
+        userid = user.user_id()
+        for each_admin in admins:
+            if each_admin.admin_id == userid:
+                return True
+        return False        
+    return False
 
 @app.route('/')
 @app.route('/index')
@@ -27,11 +45,6 @@ def index():
     else:
         return template('index', name=g_name, log_in_out = users.create_login_url('/'), opt = 'Войти')
         
-
-@app.route('/id')
-def id():
-    user = users.get_current_user()
-    return user.user_id()
 
 @app.route('/add')
 def addapp():
@@ -60,7 +73,7 @@ def save():
 def app_list():
     user = users.get_current_user()
     if user:
-        if users.is_current_user_admin():
+        if users.is_current_user_admin() or is_local_admin():
             appls_query = Applic.query(ancestor = base_key).order(-Applic.date)
             appls = appls_query.fetch()
             output = template('applist', appls=appls, name=g_name, log_in_out = users.create_logout_url('/'), opt = 'Выход', user = user.nickname())
@@ -75,7 +88,57 @@ def app_list():
     else:
         redirect('/')
 
-@app.route('/hello/<name>')
+@app.route('/admin')
+def admin_con():
+    user = users.get_current_user()
+    if user:
+        if users.is_current_user_admin() or is_local_admin():
+            admins_query = Admins.query(ancestor = admin_base)
+            admins = admins_query.fetch()
+            output = template('admin', name=g_name, log_in_out = users.create_logout_url('/'), opt = 'Выход', user = user.nickname(), admins = admins)
+            return output
+        else:
+            redirect('/')
+    else:
+        redirect('/')
+        
+@app.route('/admin', method='POST')
+def save_admin():
+    user = users.get_current_user()
+    if user:
+        if users.is_current_user_admin() or is_local_admin():
+            added_admin_mail = request.forms.get('mail')
+            added_admin = users.User(added_admin_mail)
+            if added_admin:
+                #return "Получилось"
+                new_admin = Admins(parent=admin_base)
+                new_admin.ref_nick = user.nickname()
+                new_admin.admin_nick = added_admin.nickname()
+                new_admin.admin_id = added_admin.user_id()
+                new_admin.put()
+                redirect('/admin')
+                
+            else:
+                #return "Не получилось"
+                output = template('admin', name=g_name, log_in_out = users.create_logout_url('/'), opt = 'Выход', user = user.nickname(), admins = admins, error="Неверный email")
+                return output
+        else:
+            redirect('/')
+    else:
+        redirect('/')
+
+@app.route('/isadmin')
+def is_admin():
+    user = users.get_current_user()
+    if user:
+        if users.is_current_user_admin() or is_local_admin():
+            return 'Yes, you are admin'
+        else:
+            return "No, you don't admin"
+    else:
+        return "You not logged in"         
+        
+'''@app.route('/hello/<name>')
 def greet(name='Stranger'):
     return template('Hello {{name}}, how are you?', name=name)
 	
@@ -86,6 +149,11 @@ def show_page(pagename):
 @app.route('/temp')
 def greet(name='Tempo'):
     return template('temp1', name=name)
+    
+@app.route('/id')
+def id():
+    user = users.get_current_user()
+    return user.user_id()'''
 
 @app.route('/error')
 def error_page():  
