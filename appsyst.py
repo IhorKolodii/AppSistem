@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+
 from bottle import Bottle, run, error, template, static_file, request, redirect
 from google.appengine.ext import ndb
 from google.appengine.api import users
+#import requests
 
 app = Bottle()
 g_name = 'SkyWind'
@@ -144,10 +146,16 @@ def is_admin():
 def vk_login():
     return template('vklogin')
 
-@app.route('/vkloginres')
+'''@app.route('/vkloginres')
 def vk_login_response_handler():
     code = request.query.code
-    return code   
+    if code:
+        payload = {'client_id':'4712400','client_secret':'oZCpBbYCgK1EIMlMFiHi','redirect_uri':'http://localhost:8080/vkloginres','code'=code}
+        vk_request = requests.get("https://oauth.vk.com/access_token", params = payload)
+        vk_request_decoded = vk_request.json()
+        output = 'token: ' + vk_request_decoded['access_token'] + '\n' + 'Expires in: ' + vk_request_decoded['expires_in'] + '\n' + 'User id: ' + vk_request_decoded['user_id']
+        return output
+    return code  ''' 
         
 '''@app.route('/test')
 def test_query():
