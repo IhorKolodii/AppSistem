@@ -93,7 +93,7 @@ def admin_con():
     user = users.get_current_user()
     if user:
         if users.is_current_user_admin() or is_local_admin():
-            admins_query = Admins.query(ancestor = admin_base)
+            admins_query = Admins.query(ancestor = admin_base).order(-Admins.date)
             admins = admins_query.fetch()
             output = template('admin', name=g_name, log_in_out = users.create_logout_url('/'), opt = 'Выход', user = user.nickname(), admins = admins)
             return output
@@ -110,11 +110,13 @@ def save_admin():
             added_admin_mail = request.forms.get('mail')
             added_admin = users.User(added_admin_mail)
             if added_admin:
-                #return "Получилось"
+                #return added_admin.user_id()
+                #output = added_admin.nickname()+ ' ' + added_admin.user_id()
+                #return output
                 new_admin = Admins(parent=admin_base)
                 new_admin.ref_nick = user.nickname()
                 new_admin.admin_nick = added_admin.nickname()
-                new_admin.admin_id = added_admin.user_id()
+                new_admin.admin_id = 'no id'#added_admin.user_id()
                 new_admin.put()
                 redirect('/admin')
                 
@@ -136,9 +138,23 @@ def is_admin():
         else:
             return "No, you don't admin"
     else:
-        return "You not logged in"         
+        return "You not logged in"
+
+@app.route('/vklogin')
+def vk_login():
+    return template('vklogin')
+
+@app.route('/vkloginres')
+def vk_login_response_handler():
+    code = request.query.code
+    return code   
         
-'''@app.route('/hello/<name>')
+'''@app.route('/test')
+def test_query():
+    id = request.query.dd
+    return 'id is' + id
+        
+@app.route('/hello/<name>')
 def greet(name='Stranger'):
     return template('Hello {{name}}, how are you?', name=name)
 	

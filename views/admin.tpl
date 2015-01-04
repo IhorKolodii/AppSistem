@@ -10,14 +10,14 @@
 		<form action="/admin" method="post" class="message">
 			<input type="text" name="mail" placeholder="email"></input>	
             <input type="submit" value="Добавить"/>
-			{{error}}
+			<h4 style="color:#ff0000">{{error}}</h4>
 		</form>
 	</div>
 	
 	<h1>Список админов:</h1>
 	% for admin in admins:
 	<div class="posts">
-    <h2>{{admin.mail}}</h2> 
+    <h2>{{admin.admin_nick}}</h2> 
 	<h3>Добавлен {{admin.date.strftime("%d.%m.%y  %H:%M")}} {{admin.ref_nick}}</h3>
     </div>
     % end
