@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import urllib
 import urllib2
 import json
@@ -160,23 +161,32 @@ def vk_login_response_handler():
     if code:
         data = {'client_id':vk_client_id,'client_secret':vk_client_secret,'code':code}
         data_url = urllib.urlencode(data)
-        vk_token_request_url = vk_token_url + '?' + data_url + '&' 'redirect_uri' + '=' + vk_redirect_url
+        vk_token_request_data = vk_token_url + '?' + data_url + '&' + 'redirect_uri' + '=' + vk_redirect_url
+        #req = urllib2.Request(vk_token_url)
         #return vk_token_request_url
-        vk_answer = urllib2.urlopen(vk_token_request_url)
-        return vk_answer.read()
+        vk_answer = ' '
+        #return "hgf"
+        try:
+            vk_answer = urllib2.urlopen("https://google.com")
+        except urllib2.HTTPError as HTTP_err:
+            return HTTP_err
+        except:
+            return str(sys.exc_info()) + ' ' + str(sys.exc_info()[1].reason) + ' ' + str(sys.exc_info()[1].code) + '\n ' + str(vk_answer)
+        return "aaa"
+        #vk_answer_decoded = json.load(vk_answer) 
+        #return vk_answer_decoded
         '''
-        vk_answer_decoded = json.load(vk_answer) 
         output = 'token: ' + vk_answer_decoded['access_token'] + '\n' + 'Expires in: ' + str(vk_answer_decoded['expires_in']) + '\n' + 'User id: ' + str(vk_answer_decoded['user_id'])
         return output'''
     else:
         return request.query.error
         
-'''@app.route('/test')
+@app.route('/test')
 def test_query():
-    id = request.query.dd
-    return 'id is' + id
+    answer = urllib2.urlopen("http://oauth.vk.com/access_token")
+    return answer.read()
         
-@app.route('/hello/<name>')
+'''@app.route('/hello/<name>')
 def greet(name='Stranger'):
     return template('Hello {{name}}, how are you?', name=name)
 	
