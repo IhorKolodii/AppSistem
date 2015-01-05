@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-
+import urllib
+import urllib2
+import json
 from bottle import Bottle, run, error, template, static_file, request, redirect
 from google.appengine.ext import ndb
 from google.appengine.api import users
-#import requests
+
 
 app = Bottle()
 g_name = 'SkyWind'
@@ -146,16 +148,28 @@ def is_admin():
 def vk_login():
     return template('vklogin')
 
-'''@app.route('/vkloginres')
+    
+vk_client_id = '4712400'
+vk_client_secret = 'oZCpBbYCgK1EIMlMFiHi'
+vk_redirect_url = 'http://localhost:8080/vkloginres'
+vk_token_url = "https://oauth.vk.com/access_token"
+    
+@app.route('/vkloginres')
 def vk_login_response_handler():
     code = request.query.code
     if code:
-        payload = {'client_id':'4712400','client_secret':'oZCpBbYCgK1EIMlMFiHi','redirect_uri':'http://localhost:8080/vkloginres','code'=code}
-        vk_request = requests.get("https://oauth.vk.com/access_token", params = payload)
-        vk_request_decoded = vk_request.json()
-        output = 'token: ' + vk_request_decoded['access_token'] + '\n' + 'Expires in: ' + vk_request_decoded['expires_in'] + '\n' + 'User id: ' + vk_request_decoded['user_id']
-        return output
-    return code  ''' 
+        data = {'client_id':vk_client_id,'client_secret':vk_client_secret,'code':code}
+        data_url = urllib.urlencode(data)
+        vk_token_request_url = vk_token_url + '?' + data_url + '&' 'redirect_uri' + '=' + vk_redirect_url
+        #return vk_token_request_url
+        vk_answer = urllib2.urlopen(vk_token_request_url)
+        return vk_answer.read()
+        '''
+        vk_answer_decoded = json.load(vk_answer) 
+        output = 'token: ' + vk_answer_decoded['access_token'] + '\n' + 'Expires in: ' + str(vk_answer_decoded['expires_in']) + '\n' + 'User id: ' + str(vk_answer_decoded['user_id'])
+        return output'''
+    else:
+        return request.query.error
         
 '''@app.route('/test')
 def test_query():
