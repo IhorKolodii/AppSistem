@@ -14,6 +14,7 @@ g_name = 'SkyWind'
 
 base_key = ndb.Key('Applic', 'KF_Apps')
 admin_base = ndb.Key('Admins', 'admin_base')
+user_base = ndb.Key('Users', 'user_base')
 
 class Applic(ndb.Model):
     username = ndb.StringProperty(indexed=False, required=True)
@@ -28,7 +29,16 @@ class Admins(ndb.Model):
     date = ndb.DateTimeProperty(auto_now_add=True)
     ref_nick = ndb.StringProperty(indexed=False, required=True)
     
+class Users(ndb.Model):
+    id = ndb.StringProperty(indexed=False, required=True)  #  local App System ID
+    gid = ndb.StringProperty(indexed=False, required=False) # google ID
+    vkid = ndb.StringProperty(indexed=False, required=False)  # Vkontakte user ID
+    login_type = ndb.IntegerProperty(indexed=False, required=True) # login type: 1 - google, 2 - vkontakte
+    
+    
+    
 def is_local_admin():
+    """Cheking for admin rights for current user. Uses ndb"""
     admins_query = Admins.query(ancestor = admin_base)
     admins = admins_query.fetch()
     user = users.get_current_user()
@@ -44,6 +54,7 @@ def is_local_admin():
 @app.route('/index')
 @app.route('/index.html')
 def index():
+    """Handler for index page"""
     user = users.get_current_user()
     if user:
         return template('index', name=g_name, user = user.nickname(), log_in_out = users.create_logout_url('/'), opt = 'Выход')
@@ -53,6 +64,7 @@ def index():
 
 @app.route('/add')
 def addapp():
+    """Handler for add new application page"""
     user = users.get_current_user()
     if user:
         return template('add', name=g_name, log_in_out = users.create_logout_url('/'), opt = 'Выход', user = user.nickname())
@@ -62,6 +74,7 @@ def addapp():
 	
 @app.route('/add', method='POST')
 def save():
+    """Handler for add new application page POST method"""
     user = users.get_current_user()
     if user:
         new_app = Applic(parent=base_key)
@@ -76,6 +89,7 @@ def save():
 
 @app.route('/applist')
 def app_list():
+    """Handler for application list page"""
     user = users.get_current_user()
     if user:
         if users.is_current_user_admin() or is_local_admin():
@@ -95,6 +109,7 @@ def app_list():
 
 @app.route('/admin')
 def admin_con():
+    """Handler for admin console (now is very ugly)"""
     user = users.get_current_user()
     if user:
         if users.is_current_user_admin() or is_local_admin():
@@ -109,6 +124,7 @@ def admin_con():
         
 @app.route('/admin', method='POST')
 def save_admin():
+    """Handler for add admin in admin console. method POST"""
     user = users.get_current_user()
     if user:
         if users.is_current_user_admin() or is_local_admin():
@@ -136,6 +152,7 @@ def save_admin():
 
 @app.route('/isadmin')
 def is_admin():
+    """Handler for admin right cheking page"""
     user = users.get_current_user()
     if user:
         if users.is_current_user_admin() or is_local_admin():
@@ -147,37 +164,69 @@ def is_admin():
 
 @app.route('/vklogin')
 def vk_login():
+    """Handler for login with Vkontakte page"""
     return template('vklogin')
 
     
 vk_client_id = '4712400'
 vk_client_secret = 'oZCpBbYCgK1EIMlMFiHi'
-vk_redirect_url = 'http://localhost:8080/vkloginres'
+vk_redirect_url = 'http://khanifestapp.appspot.com/vkloginres'
 vk_token_url = "https://oauth.vk.com/access_token"
+vk_user_get_url = "https://api.vk.com/method/users.get"
     
 @app.route('/vkloginres')
 def vk_login_response_handler():
+    """Vkontakte login handler"""
     code = request.query.code
     if code:
         data = {'client_id':vk_client_id,'client_secret':vk_client_secret,'code':code}
         data_url = urllib.urlencode(data)
         vk_token_request_data = vk_token_url + '?' + data_url + '&' + 'redirect_uri' + '=' + vk_redirect_url
-        #req = urllib2.Request(vk_token_url)
-        #return vk_token_request_url
-        vk_answer = ' '
-        #return "hgf"
+        
         try:
-            vk_answer = urllib2.urlopen("https://google.com")
+            vk_answer = urllib2.urlopen(vk_token_request_data)
+            
         except urllib2.HTTPError as HTTP_err:
-            return HTTP_err
-        except:
-            return str(sys.exc_info()) + ' ' + str(sys.exc_info()[1].reason) + ' ' + str(sys.exc_info()[1].code) + '\n ' + str(vk_answer)
-        return "aaa"
-        #vk_answer_decoded = json.load(vk_answer) 
-        #return vk_answer_decoded
-        '''
-        output = 'token: ' + vk_answer_decoded['access_token'] + '\n' + 'Expires in: ' + str(vk_answer_decoded['expires_in']) + '\n' + 'User id: ' + str(vk_answer_decoded['user_id'])
-        return output'''
+            if (str(sys.exc_info()[1].code) == '401'):
+                return "Ошибка авторизации <a href='https://oauth.vk.com/authorize?client_id=4712400&redirect_uri=http://khanifestapp.appspot.com/vkloginres&response_type=code'>Попробовать еще</a>"
+            else:
+                return str(HTTP_err) +' '+ str(sys.exc_info()[1].code)
+        
+        vk_answer_decoded = json.load(vk_answer) 
+
+        vk_token = vk_answer_decoded['access_token']
+        vk_token_expires = vk_answer_decoded['expires_in']
+        vk_userid = vk_answer_decoded['user_id']
+        vk_data_request = vk_user_get_url + '?' + urllib.urlencode({'uids': vk_userid, 'fields': 'uid,first_name,last_name,nickname,screen_name,sex,bdate,city,country,timezone,photo_max_orig', 'access_token': vk_token})
+        
+        try:
+            vk_answer = urllib2.urlopen(vk_data_request)
+        except urllib2.HTTPError as HTTP_err:
+            return str(HTTP_err) +' '+ str(sys.exc_info()[1].code)
+            
+        vk_answer_decoded = json.load(vk_answer)
+        #return vk_answer_decoded["response"][0]['first_name']
+        vk_userid = vk_answer_decoded["response"][0]['uid']
+        vk_firstname = vk_answer_decoded["response"][0]['first_name']
+        vk_lastname = vk_answer_decoded["response"][0]['last_name']
+        vk_nickname = vk_answer_decoded["response"][0]['nickname']
+        
+        if vk_answer_decoded["response"][0]['sex'] == 2:
+            vk_gender = "Мужской"
+        elif vk_answer_decoded["response"][0]['sex'] == 1:
+            vk_gender = "Женский"
+        else:
+            vk_gender = "Не определен"
+
+        vk_photo = vk_answer_decoded["response"][0]['photo_max_orig']
+        
+                
+
+        output = template("User ID: {{userid}}<br />Имя: {{name}}<br />Фамилия: {{surname}}<br />Ник: {{nick}}<br />Пол: {{gender}}<br /><img src={{photo}} alt='Фото'>", userid = vk_userid, name = vk_firstname, surname = vk_lastname, nick = vk_nickname, gender = vk_gender, photo = vk_photo)
+        
+        return output
+        
+        
     else:
         return request.query.error
         
