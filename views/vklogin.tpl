@@ -1,1 +1,1 @@
-<a href="https://oauth.vk.com/authorize?client_id=4712400&redirect_uri=http://khanifestapp.appspot.com/vkloginres&response_type=code">Зайти Вконтакте</a>
+<a href="https://oauth.vk.com/authorize?client_id=4712400&redirect_uri=http://localhost:8080/vkloginres&response_type=code">Зайти Вконтакте</a>

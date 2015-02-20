@@ -4,7 +4,7 @@ import sys
 import urllib
 import urllib2
 import json
-from bottle import Bottle, run, error, template, static_file, request, redirect
+from bottle import Bottle, run, error, template, static_file, request, redirect, route, response
 from google.appengine.ext import ndb
 from google.appengine.api import users
 
@@ -170,7 +170,7 @@ def vk_login():
     
 vk_client_id = '4712400'
 vk_client_secret = 'oZCpBbYCgK1EIMlMFiHi'
-vk_redirect_url = 'http://khanifestapp.appspot.com/vkloginres'
+vk_redirect_url = 'http://localhost:8080/vkloginres'
 vk_token_url = "https://oauth.vk.com/access_token"
 vk_user_get_url = "https://api.vk.com/method/users.get"
     
@@ -188,7 +188,7 @@ def vk_login_response_handler():
             
         except urllib2.HTTPError as HTTP_err:
             if (str(sys.exc_info()[1].code) == '401'):
-                return "Ошибка авторизации <a href='https://oauth.vk.com/authorize?client_id=4712400&redirect_uri=http://khanifestapp.appspot.com/vkloginres&response_type=code'>Попробовать еще</a>"
+                return "Ошибка авторизации <a href='https://oauth.vk.com/authorize?client_id=4712400&redirect_uri=http://localhost:8080/vkloginres&response_type=code'>Попробовать еще</a>"
             else:
                 return str(HTTP_err) +' '+ str(sys.exc_info()[1].code)
         
@@ -229,6 +229,24 @@ def vk_login_response_handler():
         
     else:
         return request.query.error
+        
+@app.route('/vkloginapi')
+def vk_login_api():
+
+    return template("apilogin", id = vk_client_id)
+    
+@app.route('/getcookie')
+def get_cookie():
+    cook = request.get_cookie("vk_app_"+vk_client_id)
+    return str(cook)
+    
+@app.route('/setcookie')
+def set_cookie():
+    count = int( request.get_cookie('counter', '0') )
+    count += 1
+    response.set_cookie('counter', str(count))
+    return 'You visited this page %d times' % count
+
         
 @app.route('/test')
 def test_query():
