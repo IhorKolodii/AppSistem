@@ -6,7 +6,7 @@
 
 function CheckLogin(response) {
   if (response.session) {
-    #have auth
+    window.location.href = "/vklogindo"
   } else {
     VK.Auth.Login(CheckLoginTry)
   }
@@ -14,9 +14,9 @@ function CheckLogin(response) {
 
 function CheckLoginTry(response) {
   if (response.session) {
-    #have auth
+    window.location.href = "/vklogindo"
   } else {
-    #user abadon login
+    window.location.href = "/"
   }
 }
 
